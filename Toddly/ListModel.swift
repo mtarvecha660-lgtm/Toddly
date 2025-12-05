@@ -11,9 +11,11 @@ import SwiftData
 @Model
 class Listt {
     var title: String
+    var createdAt: Date
     
     init(title: String) {
         self.title = title
+        self.createdAt = Date()
     }
 }
 

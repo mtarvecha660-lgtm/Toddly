@@ -13,10 +13,14 @@ struct ContentView: View {
     @Environment(\.modelContext)
     private var modelContext
     
-    @Query private var lists: [Listt]
+    @Query(sort: \Listt.createdAt, order: .forward)
+    private var lists: [Listt]
     
     @State private var title: String = ""
     @State private var isAlertShowing: Bool = false
+    @State private var selectedItem: Listt?
+    @State private var editedTitle: String = ""
+
     
     var body: some View {
         NavigationStack {
@@ -28,6 +32,10 @@ struct ContentView: View {
                         .font(.title2)
                         .fontWeight(.light)
                         .padding(.vertical,2)
+                        .onTapGesture {
+                                    selectedItem = list
+                                    editedTitle = list.title
+                                }
                         .swipeActions{
                             Button("Delete", role: .destructive){
                                 modelContext.delete(list)
@@ -56,6 +64,32 @@ struct ContentView: View {
                     Text("Save")
                 }
                 .disabled(title.isEmpty)
+                Button("Cancel", role: .cancel) {
+                        title = ""
+                }
+            }
+            .sheet(item: $selectedItem) { item in
+                NavigationStack {
+                    Form {
+                        TextField("Edit title", text: $editedTitle)
+                    }
+                    .navigationTitle("Edit Item")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Save") {
+                                item.title = editedTitle
+                                selectedItem = nil   // dismiss
+                            }
+                            .disabled(editedTitle.isEmpty)
+                        }
+                        
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Cancel") {
+                                selectedItem = nil
+                            }
+                        }
+                    }
+                }
             }
             .overlay{
                 if lists.isEmpty{
